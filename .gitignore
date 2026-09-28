@@ -126,5 +126,5 @@ results/*
 
 !examples/benchmarks/compression/results/
 req.txt
-data
+/data
 output

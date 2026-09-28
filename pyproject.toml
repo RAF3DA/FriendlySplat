@@ -26,9 +26,11 @@ dependencies = [
     "numpy>=2.0,<3",
     "scipy>=1.13",
 
-    # PyTorch
-    "torch==2.4.1",
-    "torchvision==0.19.1",
+    # PyTorch. A range rather than an exact pin, so an existing working CUDA
+    # build is not replaced on install. Recommended combination:
+    # torch 2.4.1 + torchvision 0.19.1 on cu124 (see README).
+    "torch>=2.4,<2.6",
+    "torchvision>=0.19,<0.21",
 
     # CLI / configuration
     "tyro>=0.8.8",
@@ -41,10 +43,11 @@ dependencies = [
     "torchmetrics",
     "tqdm",
 
-    # Imaging
+    # Imaging. opencv-python is capped below 5.x, which has not been tested
+    # against this stack (see the NumPy 2 note in the README).
     "imageio",
     "Pillow",
-    "opencv-python",
+    "opencv-python<5",
 
     # Native-extension build helper
     "ninja",
@@ -53,9 +56,13 @@ dependencies = [
 
 [project.optional-dependencies]
 
+# Direct URLs rather than bare names: fused-ssim, fused-bilagrid and moge are
+# not published on PyPI, and the nerfview release there (0.1.3) is not the
+# revision this repo is tested against. PEP 508 direct references are understood
+# by pip *and* uv, so both installers resolve these identically.
 train = [
-    "fused-ssim",
-    "fused-bilagrid",
+    "fused-ssim @ git+https://github.com/rahul-goel/fused-ssim@328dc9836f513d00c4b5bc38fe30478b4435cbb5",
+    "fused-bilagrid @ git+https://github.com/harry7557558/fused-bilagrid@49f0ef06c9f81810fb9b5dd9027cf1844950cc16",
     "scikit-learn",
 ]
 
@@ -64,7 +71,7 @@ viewer = [
     "viser",
     "matplotlib",
     "splines",
-    "nerfview",
+    "nerfview @ git+https://github.com/nerfstudio-project/nerfview@4538024fe0d15fd1a0e4d760f3695fc44ca72787",
 ]
 
 mesh = [
@@ -84,7 +91,9 @@ sfm = [
 ]
 
 priors = [
-    "moge",
+    # MoGe 2. Pinned before the MoGe 3 transition, which introduced its own
+    # cu130 PyTorch source and conflicts with FriendlySplat's cu124 stack.
+    "moge @ git+https://github.com/microsoft/MoGe.git@07444410f1e33f402353b99d6ccd26bd31e469e8",
     "open3d>=0.19.0,<0.20",
     "scikit-learn",
 ]
@@ -141,35 +150,11 @@ explicit = true
 
 [tool.uv.sources]
 
-# PyTorch CUDA 12.4 wheels
+# PyTorch CUDA 12.4 wheels. The git dependencies live in
+# [project.optional-dependencies] as direct references so that pip resolves them
+# too; only the index redirect has to be uv-specific.
 torch = { index = "pytorch-cu124" }
 torchvision = { index = "pytorch-cu124" }
-
-# CUDA extensions
-fused-ssim = {
-    git = "https://github.com/rahul-goel/fused-ssim",
-    rev = "328dc9836f513d00c4b5bc38fe30478b4435cbb5",
-}
-
-fused-bilagrid = {
-    git = "https://github.com/harry7557558/fused-bilagrid",
-    rev = "49f0ef06c9f81810fb9b5dd9027cf1844950cc16",
-}
-
-# Viewer
-nerfview = {
-    git = "https://github.com/nerfstudio-project/nerfview",
-    rev = "4538024fe0d15fd1a0e4d760f3695fc44ca72787",
-}
-
-# MoGe 2
-#
-# Pin before the MoGe 3 transition, which introduced its own cu130
-# PyTorch source and conflicts with FriendlySplat's cu124 stack.
-moge = {
-    git = "https://github.com/microsoft/MoGe.git",
-    rev = "07444410f1e33f402353b99d6ccd26bd31e469e8",
-}
 
 
 # ---------------------------------------------------------------------------
